@@ -76,6 +76,7 @@ public class PdfImporter {
         // PDFfiles: variable files
         // other files: variable noPdfFiles
         List<String> files = new ArrayList<>(fileNames);
+        List<String> filesCorrected = new ArrayList<>();
         List<String> noPdfFiles = new ArrayList<>();
         for (String file : files) {
             if (!PdfFileFilter.accept(file)) {
@@ -85,8 +86,12 @@ public class PdfImporter {
         files.removeAll(noPdfFiles);
         // files and noPdfFiles correctly sorted
 
+        for (String file : files) {
+            filesCorrected.add(PdfFileFilter.replaceDotsByHifens(file));
+        }
+
         // import the files
-        List<BibEntry> entries = importPdfFilesInternal(files);
+        List<BibEntry> entries = importPdfFilesInternal(filesCorrected);
 
         return new ImportPdfFilesResult(noPdfFiles, entries);
     }
