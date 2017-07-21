@@ -1,16 +1,6 @@
 package org.jabref.model.entry;
 
-import java.util.Collection;
-import java.util.Collections;
-import java.util.HashMap;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Locale;
-import java.util.Map;
-import java.util.Objects;
-import java.util.Optional;
-import java.util.Set;
-import java.util.TreeSet;
+import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.regex.Pattern;
 
@@ -417,6 +407,34 @@ public class BibEntry implements Cloneable {
         changed = true;
 
         fields.put(fieldName, value.intern());
+
+        //Year: deve ser um ano válido (de acordo com o calendário da linguagem Java)
+        if (fieldName.equals("year")) {
+            Calendar c = Calendar.getInstance();
+            int year = Integer.parseInt(value.intern());
+            if (year < -10000 || year > c.get(Calendar.YEAR)) {
+                fields.put(fieldName, "");
+                throw new IllegalArgumentException("Invalid year value");
+            }
+            else {
+                fields.put(fieldName, value.intern());
+            }
+        }
+
+        /**
+         * Bibtexkey: definido pelo usuário ou automaticamente, deve ter no mínimo 2
+         * caracteres, sendo o primeiro uma letra maiúscula ou minúscula
+         */
+        if (fieldName.equals("bibtexkey")) {
+            if (value.intern().length() >= 2 && value.substring(0, 1).matches("[A - Z] | [a - z]")) {
+                fields.put(fieldName, value.intern());
+            }
+            else {
+                fields.put(fieldName, "");
+                throw new IllegalArgumentException("Invalid bibtexkey value");
+            }
+        }
+
         invalidateFieldCache(fieldName);
 
         FieldChange change = new FieldChange(this, fieldName, oldValue, value);
