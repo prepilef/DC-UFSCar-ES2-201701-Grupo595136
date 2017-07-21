@@ -391,6 +391,33 @@ public class BibEntry implements Cloneable {
 
         String fieldName = toLowerCase(name);
 
+        //        Year: deve ser um ano válido (de acordo com o calendário da linguagem Java)
+        if (fieldName.equals("year")) {
+            int ano = Integer.parseInt(value);
+            int min = 1500;
+            int max = GregorianCalendar.getInstance().get(GregorianCalendar.YEAR);
+
+            if ((ano < min) || (ano > max)) {
+                fields.put(fieldName, "");
+                throw new IllegalArgumentException("Invalid bibtexkey value");
+            }
+        }
+
+        fields.put(fieldName, value.intern());
+
+        /**
+        *Bibtexkey: definido pelo usuário ou automaticamente, deve ter no mínimo 2
+        * caracteres, sendo o primeiro uma letra maiúscula ou minúscula
+        */
+        if (fieldName.equals("bibtexkey")) {
+            char[] chave = value.toCharArray();
+
+            if ((value.length() < 3) || Character.isDigit(chave[0])) {
+                fields.put(fieldName, "");
+                throw new IllegalArgumentException("Invalid bibtexkey value");
+            }
+        }
+
         if (value.isEmpty()) {
             return clearField(fieldName);
         }
@@ -404,36 +431,15 @@ public class BibEntry implements Cloneable {
             throw new IllegalArgumentException("The field name '" + name + "' is reserved");
         }
 
+        if (value.isEmpty()) {
+            return clearField(fieldName);
+        }
+
+        if (BibEntry.ID_FIELD.equals(fieldName)) {
+            throw new IllegalArgumentException("The field name '" + name + "' is reserved");
+        }
+
         changed = true;
-
-        fields.put(fieldName, value.intern());
-
-        //Year: deve ser um ano válido (de acordo com o calendário da linguagem Java)
-        if (fieldName.equals("year")) {
-            Calendar c = Calendar.getInstance();
-            int year = Integer.parseInt(value.intern());
-            if (year < -10000 || year > c.get(Calendar.YEAR)) {
-                fields.put(fieldName, "");
-                throw new IllegalArgumentException("Invalid year value");
-            }
-            else {
-                fields.put(fieldName, value.intern());
-            }
-        }
-
-        /**
-         * Bibtexkey: definido pelo usuário ou automaticamente, deve ter no mínimo 2
-         * caracteres, sendo o primeiro uma letra maiúscula ou minúscula
-         */
-        if (fieldName.equals("bibtexkey")) {
-            if (value.intern().length() >= 2 && value.substring(0, 1).matches("[A - Z] | [a - z]")) {
-                fields.put(fieldName, value.intern());
-            }
-            else {
-                fields.put(fieldName, "");
-                throw new IllegalArgumentException("Invalid bibtexkey value");
-            }
-        }
 
         invalidateFieldCache(fieldName);
 
