@@ -331,4 +331,62 @@ public class TestInsertBibTeXNew {
         bibEntry.setField("bibtexkey", null);
         fail();
     }
+
+    /**
+     * Teste: Ocorrencia de IllegalArgumentException.class
+     * Objeto Testado: Date
+     */
+    @Test(expected = IllegalArgumentException.class)
+    public void isExceptionArticleYear() {
+
+        //        New common entrance
+        BibEntry bibEntry;
+        bibEntry = new BibEntry("Article");
+
+        bibEntry.setField("year", "-20000");
+        fail();
+    }
+
+    /**
+     * Teste: Ocorrencia de IllegalArgumentException.class
+     * Objeto Testado: Date
+     */
+    @Test(expected = IllegalArgumentException.class)
+    public void isExceptionArticleYear2() {
+
+        //        New common entrance
+        BibEntry bibEntry;
+        bibEntry = new BibEntry("Article");
+
+        bibEntry.setField("year", "Ano?");
+        fail();
+    }
+
+    /**
+     * Teste: Ocorrencia de IllegalArgumentException.class
+     * Objeto Testado: Key
+     */
+    @Test(expected = IllegalArgumentException.class)
+    public void isExceptionArticleKey() {
+
+        //        New common entrance
+        BibEntry bibEntry;
+        bibEntry = new BibEntry("bibtexkey");
+        bibEntry.setField("bibtexkey", "007");
+        fail();
+    }
+
+    /**
+     * Teste: Ocorrencia de IllegalArgumentException.class
+     * Objeto Testado: Key
+     */
+    @Test(expected = IllegalArgumentException.class)
+    public void isExceptionArticleKey2() {
+
+        //        New common entrance
+        BibEntry bibEntry;
+        bibEntry = new BibEntry("bibtexkey");
+        bibEntry.setField("bibtexkey", "Fa");
+        fail();
+    }
 }
