@@ -86,7 +86,7 @@ public class PdfImporter {
         files.removeAll(noPdfFiles);
         // files and noPdfFiles correctly sorted
 
-        for (String file : filesCorrected) {
+        for (String file : files) {
             filesCorrected.add(PdfFileFilter.replaceDotsByHifens(file));
         }
 
