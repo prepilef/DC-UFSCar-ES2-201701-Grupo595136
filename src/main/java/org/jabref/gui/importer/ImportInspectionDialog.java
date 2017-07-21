@@ -88,6 +88,7 @@ import org.jabref.model.Defaults;
 import org.jabref.model.FieldChange;
 import org.jabref.model.database.BibDatabase;
 import org.jabref.model.database.BibDatabaseContext;
+import org.jabref.model.database.BibDatabaseMode;
 import org.jabref.model.entry.AuthorList;
 import org.jabref.model.entry.BibEntry;
 import org.jabref.model.entry.FieldName;
@@ -718,6 +719,9 @@ public class ImportInspectionDialog extends JabRefDialog implements ImportInspec
             // First check if we are supposed to warn about duplicates. If so,
             // see if there
             // are unresolved duplicates, and warn if yes.
+
+            int answer = JOptionPane.NO_OPTION; // default: entradas nao duplicadas
+
             if (Globals.prefs.getBoolean(JabRefPreferences.WARN_ABOUT_DUPLICATES_IN_INSPECTION)) {
                 for (BibEntry entry : entries) {
 
@@ -733,16 +737,29 @@ public class ImportInspectionDialog extends JabRefDialog implements ImportInspec
                     // is indicated by the entry's group hit status:
                     if (entry.isGroupHit()) {
                         CheckBoxMessage cbm = new CheckBoxMessage(
-                                Localization
-                                        .lang("There are possible duplicates (marked with an icon) that haven't been resolved. Continue?"),
+                                Localization.lang("It was found possible duplicates. Create new database?"),
                                 Localization.lang("Disable this confirmation dialog"), false);
-                        int answer = JOptionPane.showConfirmDialog(ImportInspectionDialog.this, cbm,
+                        answer = JOptionPane.showConfirmDialog(ImportInspectionDialog.this, cbm,
                                 Localization.lang("Duplicates found"), JOptionPane.YES_NO_OPTION);
                         if (cbm.isSelected()) {
                             Globals.prefs.putBoolean(JabRefPreferences.WARN_ABOUT_DUPLICATES_IN_INSPECTION, false);
                         }
-                        if (answer == JOptionPane.NO_OPTION) {
-                            return;
+
+                        if (answer == JOptionPane.YES_OPTION) {
+                            BibDatabase newDatabase = new BibDatabase();
+                            MetaData newMetaData = new MetaData();
+                            BibDatabaseContext newDB = new BibDatabaseContext(newDatabase, newMetaData,
+                                    new Defaults(BibDatabaseMode.BIBTEX));
+
+                            List<BibEntry> selected = getSelectedEntries();
+                            BasePanel newTab = new BasePanel(frame, newDB);
+                            frame.addTab(newDB, true);
+                            // New entries
+                            if (selected.size() != 0) {
+                                for (int i = 0; i < selected.size(); i++) {
+                                    newTab.getDatabase().insertEntry(selected.get(i));
+                                }
+                            }
                         }
                         break;
                     }
@@ -768,7 +785,7 @@ public class ImportInspectionDialog extends JabRefDialog implements ImportInspec
 
             final List<BibEntry> selected = getSelectedEntries();
 
-            if (!selected.isEmpty()) {
+            if (!selected.isEmpty() && (answer == JOptionPane.NO_OPTION)) {
                 addSelectedEntries(ce, selected);
             }
 
@@ -1422,29 +1439,29 @@ public class ImportInspectionDialog extends JabRefDialog implements ImportInspec
                 return entry.isSearchHit() ? Boolean.TRUE : Boolean.FALSE;
             } else if (i < PAD) {
                 switch (i) {
-                case DUPL_COL:
-                    return entry.isGroupHit() ? duplLabel : null;
-                case FILE_COL:
-                    if (entry.hasField(FieldName.FILE)) {
-                        FileListTableModel model = new FileListTableModel();
-                        entry.getField(FieldName.FILE).ifPresent(model::setContent);
-                        fileLabel.setToolTipText(model.getToolTipHTMLRepresentation());
-                        if ((model.getRowCount() > 0) && model.getEntry(0).getType().isPresent()) {
-                            fileLabel.setIcon(model.getEntry(0).getType().get().getIcon());
+                    case DUPL_COL:
+                        return entry.isGroupHit() ? duplLabel : null;
+                    case FILE_COL:
+                        if (entry.hasField(FieldName.FILE)) {
+                            FileListTableModel model = new FileListTableModel();
+                            entry.getField(FieldName.FILE).ifPresent(model::setContent);
+                            fileLabel.setToolTipText(model.getToolTipHTMLRepresentation());
+                            if ((model.getRowCount() > 0) && model.getEntry(0).getType().isPresent()) {
+                                fileLabel.setIcon(model.getEntry(0).getType().get().getIcon());
+                            }
+                            return fileLabel;
+                        } else {
+                            return null;
                         }
-                        return fileLabel;
-                    } else {
+                    case URL_COL:
+                        if (entry.hasField(FieldName.URL)) {
+                            urlLabel.setToolTipText(entry.getField(FieldName.URL).orElse(""));
+                            return urlLabel;
+                        } else {
+                            return null;
+                        }
+                    default:
                         return null;
-                    }
-                case URL_COL:
-                    if (entry.hasField(FieldName.URL)) {
-                        urlLabel.setToolTipText(entry.getField(FieldName.URL).orElse(""));
-                        return urlLabel;
-                    } else {
-                        return null;
-                    }
-                default:
-                    return null;
                 }
             } else {
                 String field = INSPECTION_FIELDS.get(i - PAD);
