@@ -25,4 +25,12 @@ public class PdfFileFilter implements FileFilter {
         return "pdf".equalsIgnoreCase(extension);
     }
 
+    public static String replaceDotsByHifens(String path) {
+        String extensao = path.substring(path.lastIndexOf('.'));
+        path = path.replaceAll("\\.", "-");
+        path = path.replaceAll("-pdf", "");
+        path += extensao;
+        return path;
+    }
+
 }
